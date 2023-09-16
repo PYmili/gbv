@@ -56,12 +56,3 @@ class FavoriteCrawling:
 
         logger.info(f"抓取收藏夹链接完毕，共{len(links)}个。")
         return links
-
-
-if __name__ in "__main__":
-    FavoriteCrawling(
-        url="https://space.bilibili.com/483109517/favlist?fid=2343574217&ftype=create",
-        browser=0,
-        fid=2343574217,
-        page=1
-    ).run()
