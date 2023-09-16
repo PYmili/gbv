@@ -9,6 +9,7 @@ fileid==0.2.1
 future==0.18.2
 greenlet==2.0.1
 idna==3.4
+loguru==0.7.2
 lxml==4.9.2
 lz4==4.3.2
 pefile==2022.5.30
@@ -23,3 +24,4 @@ tqdm==4.65.0
 typing_extensions==4.4.0
 urllib3==1.26.13
 uuid==1.30
+win32-setctime==1.1.0
