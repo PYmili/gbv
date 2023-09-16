@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup
 
 import getHeaders
 import bvid_aid
+import FavoriteCrawling
 
 PATH: str = os.path.split(__file__)[0]
 COOKIE: bool = False
@@ -35,6 +36,8 @@ class GBV:
         self.title = None
         self.audio = None
         self.video = None
+
+        self.fav_links = []
 
     def move(self, file: str, toPath: str) -> str:
         """
@@ -152,14 +155,38 @@ class GBV:
         :return:
         """
         global OUTPUTPATH
-        url = "https://api.bilibili.com/x/web-interface/wbi/view/detail"
+        api_url = "https://api.bilibili.com/x/web-interface/wbi/view/detail"
         params = {
             "bvid": bvid,
             "aid": bvid_aid.getAID(bvid),
         }
         videos = {}
+
+        if "favlist" == self.url.split("/")[-1].split("?")[0]:
+            if PAGE[0] != "ALL" and PAGE[0] is not None:
+                for i in PAGE:
+                    links = FavoriteCrawling.FavoriteCrawling(
+                        url=self.url,
+                        headers=self.headers,
+                        page=i
+                    ).run()
+                    for link in links:
+                        self.fav_links.append(link)
+            else:
+                self.fav_links = FavoriteCrawling.FavoriteCrawling(
+                    url=self.url,
+                    headers=self.headers
+                ).run()
+
+            for link in self.fav_links:
+                self.url = link
+                self.GetPlayInfoData()
+                self.save()
+            logger.info("收藏夹视频下载完成！")
+            return None
+
         logger.info("获取视频page")
-        with requests.get(url, params=params, headers=self.headers) as get:
+        with requests.get(api_url, params=params, headers=self.headers) as get:
             page_all = 1
             for i in get.json()['data']['View']['pages']:
                 videos[i['page']] = i['part']
@@ -192,7 +219,7 @@ class GBV:
                     self.GetPlayInfoData()
                     self.title = value
                     self.save()
-            elif (type(PAGE) == list) and (PAGE[0] != None):
+            elif (type(PAGE) == list) and (PAGE[0] is not None):
                 logger.info(f"下载指定page: {PAGE}")
                 for i in PAGE:
                     if i <= int(page_all):
@@ -285,7 +312,8 @@ if __name__ == '__main__':
             elif value in ["all", "ALL", "All"]:
                 PAGE[0] = "ALL"
             else:
-                PAGE.append(int(value))
+                PAGE[0] = int(value)
+                # PAGE.append(int(value))
             logger.info(f"更新下载页数：{PAGE}")
 
     if URL is not None and BVID is not None:
