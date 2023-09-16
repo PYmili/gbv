@@ -21,6 +21,28 @@ PAGE: list = [
 ]
 
 
+def CurrentFolderEvent(dirName: str) -> None:
+    global OUTPUTPATH
+
+    if OUTPUTPATH == os.path.split(__file__)[0]:
+        logger.info(f"在当前位置，创建输出文件夹")
+        try:
+            OUTPUTPATH = os.path.join(
+                os.getcwd(),
+                dirName
+            )
+            if os.path.isdir(OUTPUTPATH) is False:
+                os.mkdir(OUTPUTPATH)
+        except OSError as e:
+            logger.warning(f"发生{e}错误，程序将随机生成文件夹名。")
+            OUTPUTPATH = os.path.join(
+                os.getcwd(),
+                Newid(10).newfileid()
+            )
+            if os.path.isdir(OUTPUTPATH) is False:
+                os.mkdir(OUTPUTPATH)
+
+
 class GBV:
     def __init__(self, _url: str, _browser: int, _params) -> None:
         """
@@ -76,22 +98,29 @@ class GBV:
         """
         logger.info("获取视频，音频链接(window.__playinfo__)")
         with requests.get(self.url, headers=self.headers, params=self.params) as get:
-            self.title = BeautifulSoup(get.text, "lxml").find_all("h1")[0].attrs['title']
-            logger.info(f"获取到Title -> {self.title}")
+            if get.status_code == 200:
+                try:
+                    self.title = BeautifulSoup(get.text, "lxml").find("h1", class_="video-title").attrs['title']
+                    logger.info(f"获取到Title -> {self.title}")
+                except AttributeError:
+                    logger.warning(f"{self.url}，请求时出现错误，视频已被删除！")
+                    return False
             
-            for script in BeautifulSoup(get.text, "lxml").find_all("script"):
-                script = script.text.split("=", 1)
-                if "window.__playinfo__" == script[0]:
-                    data = script[-1]
-            try:
-                data = json.loads(data)
-                logger.info("成功获取到视频，音频数据")
-            except Exception as e:
-                logger.error(f"获取视频，音频数据时发生错误 -> {e}")
-                exit(0)
+                for script in BeautifulSoup(get.text, "lxml").find_all("script"):
+                    script = script.text.split("=", 1)
+                    if "window.__playinfo__" == script[0]:
+                        data = script[-1]
+                try:
+                    data = json.loads(data)
+                    logger.info("成功获取到视频，音频数据")
+                except Exception as e:
+                    logger.error(f"获取视频，音频数据时发生错误 -> {e}")
+                    exit(0)
             
-            self.audio = data['data']['dash']['audio'][0]['baseUrl']
-            self.video = data['data']['dash']['video'][0]['baseUrl']
+                self.audio = data['data']['dash']['audio'][0]['baseUrl']
+                self.video = data['data']['dash']['video'][0]['baseUrl']
+            else:
+                logger.warning(f"{self.url}，请求时出现错误，可能是视频已消失。")
 
         return self.title, self.audio, self.video
 
@@ -172,10 +201,17 @@ class GBV:
                     headers=self.headers
                 ).run()
 
+            RECORDPOINT = OUTPUTPATH
             for link in self.fav_links:
                 self.url = link
-                self.GetPlayInfoData()
+                result = self.GetPlayInfoData()
+                if result is False:
+                    OUTPUTPATH = RECORDPOINT
+                    continue
+                CurrentFolderEvent(result[0])
                 self.save()
+                OUTPUTPATH = RECORDPOINT
+
             logger.info("收藏夹视频下载完成！")
             return None
 
@@ -193,23 +229,7 @@ class GBV:
                 videos[i['page']] = i['part']
                 page_all += 1
 
-            if OUTPUTPATH == os.path.split(__file__)[0]:
-                logger.info(f"在当前位置，创建输出文件夹")
-                try:
-                    OUTPUTPATH = os.path.join(
-                        os.getcwd(),
-                        get.json()['data']['View']['title']
-                    )
-                    if os.path.isdir(OUTPUTPATH) is False:
-                        os.mkdir(OUTPUTPATH)
-                except OSError as e:
-                    logger.warning(f"发生{e}错误，程序将随机生成文件夹名。")
-                    OUTPUTPATH = os.path.join(
-                        os.getcwd(),
-                        Newid(10).newfileid()
-                    )
-                    if os.path.isdir(OUTPUTPATH) is False:
-                        os.mkdir(OUTPUTPATH)
+            CurrentFolderEvent(get.json()['data']['View']['title'])
 
             if PAGE[0] == "ALL":
                 logger.info("下载视频所有page")
