@@ -155,12 +155,6 @@ class GBV:
         :return:
         """
         global OUTPUTPATH
-        api_url = "https://api.bilibili.com/x/web-interface/wbi/view/detail"
-        params = {
-            "bvid": bvid,
-            "aid": bvid_aid.getAID(bvid),
-        }
-        videos = {}
 
         if "favlist" == self.url.split("/")[-1].split("?")[0]:
             if PAGE[0] != "ALL" and PAGE[0] is not None:
@@ -184,6 +178,13 @@ class GBV:
                 self.save()
             logger.info("收藏夹视频下载完成！")
             return None
+
+        api_url = "https://api.bilibili.com/x/web-interface/wbi/view/detail"
+        params = {
+            "bvid": bvid,
+            "aid": bvid_aid.getAID(bvid),
+        }
+        videos = {}
 
         logger.info("获取视频page")
         with requests.get(api_url, params=params, headers=self.headers) as get:
