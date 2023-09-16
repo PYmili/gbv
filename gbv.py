@@ -270,7 +270,7 @@ if __name__ == '__main__':
     BVID = None
     PARAMS = {}
 
-    logger.add(r"./log/latest.log", rotation="40kb")
+    logger.add(os.path.join(os.getcwd(), "/log/latest.log"), rotation="40kb")
 
     options, argv = getopt.getopt(
         sys.argv[1:], "i:c:b:o:p:",
