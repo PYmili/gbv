@@ -29,7 +29,7 @@ class CookiesCache:
 
     def Save(self, DomainName: str, Cookies: str) -> bool:
         OldJsonData = self.Read()
-        with open(".\\cookies.json", "w+", encoding="utf-8") as cookieWfp:
+        with open(f".\\{PATH}\\cookies.json", "w+", encoding="utf-8") as cookieWfp:
             OldJsonData[DomainName] = Cookies
             cookieWfp.write(json.dumps(OldJsonData))
 
@@ -38,7 +38,7 @@ class CookiesCache:
         result = {}
         if os.path.isfile(".\\cookies.json") is False:
             return result
-        with open(".\\cookies.json", "r", encoding="utf-8") as cookieRfp:
+        with open(f".\\{PATH}\\cookies.json", "r", encoding="utf-8") as cookieRfp:
             result = json.loads(cookieRfp.read())
 
         return result
@@ -332,7 +332,7 @@ if __name__ == '__main__':
     IsStartCache = True
     PARAMS = {}
 
-    logger.add(".\\log\\latest.log", rotation="40kb")
+    logger.add(f"{PATH}\\log\\latest.log", rotation="40kb")
 
     options, argv = getopt.getopt(
         sys.argv[1:], "i:c:b:o:p:",
