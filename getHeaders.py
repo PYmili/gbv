@@ -4,9 +4,9 @@ USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 REFERER = "https://www.bilibili.com/"
 
 
-def get(browser: int = 0) -> dict:
+def get(browser: int = 0, cookies: str = False) -> dict:
     return {
         "User-Agent": USER_AGENT,
-        "cookie": GetBilibiliCookies.GetBrowser_cookies(browser).get(),
+        "cookie": GetBilibiliCookies.GetBrowser_cookies(browser).get() if cookies is False else cookies,
         "Referer": REFERER
     }

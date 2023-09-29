@@ -4,6 +4,7 @@ import os
 import getopt
 
 import requests
+from urllib.parse import urlsplit
 from fileid.fileid import Newid
 from tqdm import tqdm
 from loguru import logger
@@ -13,12 +14,34 @@ import getHeaders
 import bvid_aid
 import FavoriteCrawling
 
+
 PATH: str = os.path.split(__file__)[0]
 COOKIE: bool = False
 OUTPUTPATH: str = PATH
 PAGE: list = [
     None
 ]
+
+
+class CookiesCache:
+    def __init__(self) -> None:
+        logger.info("启动Cookies缓存类")
+
+    def Save(self, DomainName: str, Cookies: str) -> bool:
+        OldJsonData = self.Read()
+        with open(".\\cookies.json", "w+", encoding="utf-8") as cookieWfp:
+            OldJsonData[DomainName] = Cookies
+            cookieWfp.write(json.dumps(OldJsonData))
+
+    def Read(self) -> dict:
+        logger.info("读取Cookies.json")
+        result = {}
+        if os.path.isfile(".\\cookies.json") is False:
+            return result
+        with open(".\\cookies.json", "r", encoding="utf-8") as cookieRfp:
+            result = json.loads(cookieRfp.read())
+
+        return result
 
 
 def CurrentFolderEvent(dirName: str) -> None:
@@ -44,17 +67,33 @@ def CurrentFolderEvent(dirName: str) -> None:
 
 
 class GBV:
-    def __init__(self, _url: str, _browser: int, _params) -> None:
+    def __init__(
+            self,
+            _url: str,
+            _browser: int,
+            _params: dict,
+            _isStartCache: bool = True
+    ) -> None:
         """
         主类
         :param _url: str，要访问的 URL 链接
         :param _browser: int，选择要获取 cookies 的浏览器
-        :param _params: 参数
+        :param _params: dict 参数
+        :param _isStartCache: bool 是否启动缓存检查
         """
         logger.info("启动主类")
         self.url = _url
         self.params = _params
-        self.headers = getHeaders.get(_browser)
+        self.CookieCache = CookiesCache()
+        self.headers = None
+        if _isStartCache is True:
+            for CacheKey, CacheValue in self.CookieCache.Read().items():
+                if CacheKey == urlsplit(self.url).netloc.split(".", 1)[-1]:
+                    logger.info(f"检查到Cookies缓存，立即使用：{CacheKey}")
+                    self.headers = getHeaders.get(_browser, CacheValue)
+        if self.headers is None:
+            self.headers = getHeaders.get(_browser, COOKIE)
+
         self.title = None
         self.audio = None
         self.video = None
@@ -166,10 +205,6 @@ class GBV:
         os.popen(cmd).read()
 
         moveReturn = self.move(f"{randomStr}", OUTPUTPATH)
-
-        if COOKIE:
-            with open(f"{PATH}/.cookie", "w+", encoding="utf-8") as wfp:
-                wfp.write(COOKIE)
         
         logger.info("删除缓存文件")
         os.remove(tempMp4_Path)
@@ -177,6 +212,12 @@ class GBV:
         os.remove(output_path)
         
         logger.info(f"成功！视频保存文件为：{moveReturn}")
+
+        if COOKIE:
+            self.CookieCache.Save(
+                DomainName=urlsplit(self.url).netloc.split(".", 1)[-1],
+                Cookies=COOKIE
+            )
 
     def run(self, bvid: str) -> None:
         """
@@ -255,7 +296,7 @@ class GBV:
                 self.save()
 
 
-def main(_url: str, _browser: int, bvid: str, params: dict) -> None:
+def main(_url: str, _browser: int, bvid: str, params: dict, IsStartCache: bool) -> None:
     """
     :param _url: str，要访问的 URL 地址
     :param _browser: int，选择要获取 cookies 的浏览器
@@ -263,7 +304,7 @@ def main(_url: str, _browser: int, bvid: str, params: dict) -> None:
     :param params: dict，参数
     :return: None
     """
-    gbv = GBV(_url, _browser, params)
+    gbv = GBV(_url, _browser, params, IsStartCache)
     gbv.run(bvid)
 
 
@@ -288,13 +329,22 @@ if __name__ == '__main__':
     URL = None
     BROWSER = 0
     BVID = None
+    IsStartCache = True
     PARAMS = {}
 
-    logger.add(os.path.join(os.getcwd(), "/log/latest.log"), rotation="40kb")
+    logger.add(".\\log\\latest.log", rotation="40kb")
 
     options, argv = getopt.getopt(
         sys.argv[1:], "i:c:b:o:p:",
-        ["--input_url=", "--cookie=", "--browser=", "--output=", "--page="]
+        [
+            "input_url=",
+            "cookie=",
+            "closeCache",
+            "cc",
+            "browser=",
+            "output=",
+            "page="
+        ]
     )
 
     for key, value in options:
@@ -310,9 +360,12 @@ if __name__ == '__main__':
                     except SyntaxError:
                         PARAMS[i.split("=")[0]] = str(i.split('=')[-1])
             logger.info(f"更新参数：Url:{URL}, BVID:{BVID}, PARANS:{PARAMS}")
-        if key in ["-c", "--copkie"]:
+        if key in ["-c", "--cookie"]:
             COOKIE = value
             logger.info(f"更新cookie：{COOKIE}")
+        if key in ["--cc", "--closeCache"]:
+            IsStartCache = False
+            logger.info("将不会检查Cookies缓存。")
         if key in ["-b", "--browser"]:
             if value == "chrome":
                 BROWSER = 1
@@ -338,7 +391,7 @@ if __name__ == '__main__':
             logger.info(f"更新下载页数：{PAGE}")
 
     if URL is not None and BVID is not None:
-        main(URL, BROWSER, BVID, PARAMS)
+        main(URL, BROWSER, BVID, PARAMS, IsStartCache)
         logger.info("程序正常退出...")
     else:
         menu()

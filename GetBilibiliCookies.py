@@ -1,8 +1,9 @@
 import browser_cookie3
 
+
 class GetBrowser_cookies:
     def __init__(self, browser: int = 0) -> None:
-        self.Bkeys = [
+        self.CookieKeys = [
             "buvid4",
             "b_nut",
             "b_lsid",
@@ -27,29 +28,28 @@ class GetBrowser_cookies:
 
         try:
             if browser == 0:
-                self.browserCookes = browser_cookie3.edge()
+                self.browserCookies = browser_cookie3.edge()
             if browser == 1:
-                self.browserCookes = browser_cookie3.chrome()
+                self.browserCookies = browser_cookie3.chrome()
             if browser == 2:
-                self.browserCookes = browser_cookie3.firefox()
+                self.browserCookies = browser_cookie3.firefox()
         except browser_cookie3.BrowserCookieError:
-            self.browserCookes = None
-        
-        except PermissionError as PE:
-            self.browserCookes = None
-            raise PermissionError(f"{PE}\n可能是浏览器引起的问题，可以尝试重装浏览器")
+            self.browserCookies = None
 
+        except PermissionError as PE:
+            self.browserCookies = None
+            raise PermissionError(f"{PE}\n可能是浏览器引起的问题，可以尝试重装浏览器")
 
     def get(self) -> str:
         cookies = ""
-        for i in self.browserCookes:
-            if i.name in self.Bkeys:
+        for i in self.browserCookies:
+            if i.name in self.CookieKeys:
                 cookies += f"{i.name}={i.value}; "
 
         return cookies
-    
+
     def getValue(self, key: str) -> str:
-        for i in self.browserCookes:
+        for i in self.browserCookies:
             if key == i.name:
                 return i.value
         return ""
