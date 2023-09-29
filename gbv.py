@@ -29,16 +29,16 @@ class CookiesCache:
 
     def Save(self, DomainName: str, Cookies: str) -> bool:
         OldJsonData = self.Read()
-        with open(f".\\{PATH}\\cookies.json", "w+", encoding="utf-8") as cookieWfp:
+        with open(os.path.join(PATH, "cookies.json"), "w+", encoding="utf-8") as cookieWfp:
             OldJsonData[DomainName] = Cookies
             cookieWfp.write(json.dumps(OldJsonData))
 
     def Read(self) -> dict:
         logger.info("读取Cookies.json")
         result = {}
-        if os.path.isfile(".\\cookies.json") is False:
+        if os.path.isfile(os.path.join(PATH, "cookies.json")) is False:
             return result
-        with open(f".\\{PATH}\\cookies.json", "r", encoding="utf-8") as cookieRfp:
+        with open(os.path.join(PATH, "cookies.json"), "r", encoding="utf-8") as cookieRfp:
             result = json.loads(cookieRfp.read())
 
         return result
@@ -84,6 +84,7 @@ class GBV:
         logger.info("启动主类")
         self.url = _url
         self.params = _params
+        self.IsStartCache = _isStartCache
         self.CookieCache = CookiesCache()
         self.headers = None
         if _isStartCache is True:
@@ -173,6 +174,9 @@ class GBV:
         tempMp4_Path = os.path.join(os.getcwd(), "temp.mp4")
         tempMp3_Path = os.path.join(os.getcwd(), "temp.mp3")
         ffmepg_Path = os.path.join(PATH, "ffmpeg.exe")
+        if os.path.isfile(ffmepg_Path) is False:
+            logger.error("程序所在位置未找到ffmpeg！")
+            exit(0)
 
         logger.info("开始下载音频")
         with requests.get(self.audio, headers=self.headers, stream=True) as AudioGet:
@@ -257,9 +261,14 @@ class GBV:
             return None
 
         api_url = "https://api.bilibili.com/x/web-interface/wbi/view/detail"
+        cookiesCache = False
+        if self.IsStartCache is True:
+            for CacheKey, CacheValue in self.CookieCache.Read().items():
+                if CacheKey == urlsplit(self.url).netloc.split(".", 1)[-1]:
+                    cookiesCache = CacheValue
         params = {
             "bvid": bvid,
-            "aid": bvid_aid.getAID(bvid),
+            "aid": bvid_aid.getAID(bvid, cookiesCache),
         }
         videos = {}
 
