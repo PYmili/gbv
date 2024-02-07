@@ -43,3 +43,5 @@ python gbv.py --url "https://www.bilibili.com/video/BV1UA4m1572K" --output "D:/V
 ---
 
 以上就是GetBilibiliVideo项目的简要介绍和使用说明，欢迎参与贡献代码或提出宝贵建议，共同优化和完善此项目。
+
+![firefly](images/firefly.jpg)
