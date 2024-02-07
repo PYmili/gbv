@@ -108,16 +108,20 @@ class GBV:
         :param toPath: 移至此文件夹
         :return: str
         """
+        # 文件存在直接读取，不存在则返回空字符串
         if os.path.isfile(file):
             rfp = open(file, "rb")
         else:
             return ""
 
+        # 判断移动至目录是否存在
         if os.path.isfile(toPath) is False:
             if os.path.isdir(toPath):
                 toPath = os.path.join(toPath, self.title + self.video_type)
             else:
                 return ""
+        
+        # 正式开始移动
         try:
             with open(toPath, "wb") as wfp:
                 wfp.write(rfp.read())
@@ -147,6 +151,11 @@ class GBV:
             else:
                 logger.error("未找到ffmpeg！")
                 return False
+            
+        # 如果文件存在，则停止下载。
+        if os.path.isdir(self.outputDir) is True:
+            logger.warning("识别到文件已存在，停止下载。")
+            return True
 
         logger.info("开始下载音频")
         DownloadBilibiliFile(self.audio_url, self.headers, tempMp3Path)

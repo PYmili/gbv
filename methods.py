@@ -25,7 +25,7 @@ def find_ffmpeg() -> Union[str, None]:
 
 def sanitize_filename(filename):
     # 使用translate方法配合maketrans创建映射表，将非法字符替换为空字符串
-    sanitized = filename.translate(str.maketrans('', '', r'\/:*?"<>|'))
+    sanitized = filename.translate(str.maketrans('', '', r'\/:*?"<>|.'))
     
     # 返回处理过的安全文件名
     return sanitized
@@ -92,7 +92,7 @@ def GetPlayInfoData(url: str, headers: dict, params: dict) -> Union[dict, None]:
     """
     logger.info("获取视频，音频链接(window.__playinfo__)")
 
-    result = {}
+    result = None
 
     with requests.get(url, headers=headers, params=params) as response:
         if response.status_code == 200:
