@@ -153,7 +153,8 @@ class GBV:
                 return False
             
         # 如果文件存在，则停止下载。
-        if os.path.isdir(self.outputDir) is True:
+        is_file = os.path.join(self.outputDir, os.path.split(self.outputDir)[-1] + self.video_type)
+        if os.path.isfile(is_file) is True:
             logger.warning("识别到文件已存在，停止下载。")
             return True
 
