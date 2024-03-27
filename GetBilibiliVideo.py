@@ -85,6 +85,7 @@ class GBV:
         self.CookieCache = CookiesCache.CookiesCache()
         self.hwaccels = hwaccels
         self.libx264 = libx264
+        self.browser = browser
         self.headers = GenerateHeaders.generate(browser, self.cookies)
 
         # 判断是否打开cookies缓存
@@ -271,7 +272,7 @@ class GBV:
         VideoPage = methods.GetUrlPage(
             params={
                 "bvid": self.params['bvid'],
-                "aid": bvid_aid.getAID(self.params['bvid'], cookiesCache),
+                "aid": bvid_aid.getAID(self.params['bvid'], cookiesCache, self.browser),
             },
             headers=self.headers
         )
