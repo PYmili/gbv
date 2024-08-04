@@ -8,7 +8,8 @@ idna==3.6
 loguru==0.7.2
 lxml==5.1.0
 requests==2.31.0
-rookiepy==0.3.6
+rookiepy==0.5.2
+setuptools==72.1.0
 soupsieve==2.5
 tqdm==4.66.1
 urllib3==2.2.0

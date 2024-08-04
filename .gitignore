@@ -164,3 +164,6 @@ ffmpeg.exe
 
 # cookies.json
 cookies.json
+
+# log
+/log

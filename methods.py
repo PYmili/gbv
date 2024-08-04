@@ -115,12 +115,14 @@ def GetPlayInfoData(url: str, headers: dict, params: dict) -> Union[dict, None]:
                 logger.error(f"获取视频，音频数据时发生错误 -> {e}")
                 exit(0)
             
-            result
-            result = {
-                "title": title,
-                "video": PlayInfo['data']['dash']['video'][0]['baseUrl'],
-                "audio": PlayInfo['data']['dash']['audio'][0]['baseUrl']
-            }
+            try:
+                result = {
+                    "title": title,
+                    "video": PlayInfo['data']['dash']['video'][0]['baseUrl'],
+                    "audio": PlayInfo['data']['dash']['audio'][0]['baseUrl']
+                }
+            except KeyError as KeyE:
+                logger.error(KeyE)
         else:
             logger.warning(f"{url}，请求时出现错误，可能是视频已消失。")
 

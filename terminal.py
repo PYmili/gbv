@@ -4,7 +4,7 @@ from typing import Union
 
 from loguru import logger
 
-from methods import get_ffmpeg_hwaccels
+from gbv.methods import get_ffmpeg_hwaccels
 
 
 INPUT = ["--url", "-i"]

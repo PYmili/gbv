@@ -4,8 +4,8 @@ from typing import Union
 
 from loguru import logger
 
-from GetBilibiliVideo import GBV
-from terminal import terminal
+from gbv.GetBilibiliVideo import GBV
+from gbv.terminal import terminal
 
 
 def starter(
@@ -73,7 +73,7 @@ def starter(
     return gbv
 
 
-if __name__ == '__main__':
+def cli():
     argv = terminal()
     if argv is None:
         exit(0)
@@ -96,4 +96,8 @@ if __name__ == '__main__':
 
     end = time.time()
     logger.info(f"总耗时：{end - start}")
+
+
+if __name__ == '__main__':
+    cli()
     

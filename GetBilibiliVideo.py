@@ -7,11 +7,11 @@ from fileid.fileid import Newid
 from tqdm import tqdm
 from loguru import logger
 
-import GenerateHeaders
-import bvid_aid
-import FavoriteCrawling
-import CookiesCache
-import methods
+from gbv import GenerateHeaders
+from gbv import bvid_aid
+from gbv import FavoriteCrawling
+from gbv import CookiesCache
+from gbv import methods
 
 ARC_API_URL = "https://api.bilibili.com/x/space/top/arc?vmid="
 

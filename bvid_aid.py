@@ -1,5 +1,5 @@
 import requests
-import GenerateHeaders
+from gbv import GenerateHeaders
 
 
 def getAID(bvid: str, cookieCache: dict, browser: int) -> int:
